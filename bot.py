@@ -18,7 +18,7 @@ def error(update, context):
     logger.warning('Update "%s" caused error "%s"', update, context.error)
 
 def start(update, context):
-    update.message.reply_text('This bot operates similar to the @wiki bot. Type the bot's name, then type your search term.')
+    update.message.reply_text('This bot operates similar to the @wiki bot. Type the bot\'s name, then type your search term.')
 
 def help(update, context):
     update.message.reply_text("""
