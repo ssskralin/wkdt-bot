@@ -22,7 +22,7 @@ def start(update, context):
 
 def help(update, context):
     update.message.reply_text("""
-        In fact, the bot just uses the `wbsearchentitis` module of the Wikibase MediaWiki API extension. The bot is not able to search for properties (P-entities) and lexemes (L-entities).
+        In fact, the bot just uses the \'wbsearchentities\' module of the Wikibase MediaWiki API extension. The bot is not able to search for properties (P-entities) and lexemes (L-entities).
         """)
     
 def construct(json_result):
