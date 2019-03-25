@@ -18,37 +18,54 @@ def error(update, context):
     logger.warning('Update "%s" caused error "%s"', update, context.error)
 
 def start(update, context):
-    update.message.reply_text('This bot operates similar to the @wiki bot. Type the bot\'s name, then type your search term.')
+    update.message.reply_text('This bot operates similar to the @wiki bot. Type the bot\'s name, then type your search terms.')
 
 def help(update, context):
     update.message.reply_text("""
-        In fact, the bot just uses the \'wbsearchentities\' module of the Wikibase MediaWiki API extension. The bot is not able to search for properties (P-entities) and lexemes (L-entities).
-        """)
+    The bot uses the \'wbsearchentities\' module of the Wikibase MediaWiki API extension.\
+    Type \'-l\' or \'-q\' before your search terms to search for lexeme or property.
+    """)
     
-def construct(json_result):
+def transform_query(query):
+    type_ = 'item'
+    flag = query[:1]
+    if flag=='-':
+        flag=query[:3]
+        if flag == '-l ':
+            type_ = 'lexeme'
+            query = query[3:]
+        if flag == '-p ':
+            type_ = 'property'
+            query = query[3:]
+        if flag == '-q ':
+            type_ = 'item'
+            query = query[3:]        
+    return dict(
+        action='wbsearchentities',
+        format='json',
+        language='en',
+        uselang='en',
+        type=type_,
+        search=query
+    )
+    
+def transform_answer(json_result):
     return InlineQueryResultArticle(
         id=uuid4(),
         title = json_result['label']  + ' (' + json_result['match']['text'] + ')',
         description = json_result.get('description'),
         url = json_result['concepturi'],
         input_message_content=InputTextMessageContent(json_result['concepturi'], parse_mode=ParseMode.HTML)
-    )
+    )    
     
 def inlinequery(update, context):
     query = update.inline_query.query
     url = 'https://www.wikidata.org/w/api.php?'
-    params = dict(
-        action='wbsearchentities',
-        format='json',
-        language='en',
-        uselang='en',
-        type='item',
-        search=query
-    )
-    response = requests.get(url=url, params=params).json() 
-    json_results = response['search']
     
-    results = map(construct, json_results)
+    response = requests.get(url=url, params=transform_query(query)).json() 
+    json_results = response.get('search')
+    
+    results = map(transform_answer, json_results) if json_results is not None else []
     update.inline_query.answer(results)
 
 
